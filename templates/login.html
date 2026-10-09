@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in - Campus Twin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth">
+  <aside class="auth-visual">
+    <a class="brand" href="{{ url_for('index') }}" aria-label="Campus Twin home">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="7" width="16" height="16" rx="3" class="bm-a"/><rect x="10" y="3" width="16" height="16" rx="3" class="bm-b"/></svg>
+      <span class="brand-name">Campus Twin</span>
+    </a>
+    <div class="auth-map"><div id="auth-map" class="map-host"></div></div>
+    <p class="auth-caption" id="auth-caption">Reading the campus right now...</p>
+  </aside>
+
+  <main class="auth-panel">
+    <div class="auth-box">
+      <h1>Welcome back</h1>
+      <p class="sub">Log in to see forecasts, plan your day and set alerts.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}<div class="notice notice-{{ cat }}" role="status">{{ msg }}</div>{% endfor %}
+      {% endwith %}
+      {% if error %}<div class="notice notice-error" role="alert">{{ error }}</div>{% endif %}
+
+      <form method="post" action="{{ url_for('login') }}" id="login-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <label class="field">
+          <span>Email</span>
+          <input type="email" name="email" id="email" value="{{ email }}" autocomplete="username" required autofocus placeholder="you@college.edu">
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <span class="pw-wrap">
+            <input type="password" name="password" id="password" autocomplete="current-password" required placeholder="Your password">
+            <button type="button" class="pw-toggle" data-target="password" aria-label="Show password">Show</button>
+          </span>
+        </label>
+        <button class="btn btn-solid btn-block btn-lg" type="submit">Log in</button>
+      </form>
+
+      <p class="alt">New here? <a href="{{ url_for('register') }}">Create an account</a></p>
+
+      <div class="demo-box">
+        <p><strong>Demo accounts</strong> for the viva or a quick look around.</p>
+        <div class="demo-row">
+          <button type="button" class="btn btn-ghost btn-sm" data-fill="student@campus.edu|Student@123">Fill student login</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-fill="admin@campus.edu|Admin@123">Fill admin login</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/twin.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Dashboard - Campus Twin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app" data-role="{{ user.role }}" data-name="{{ user.name }}"
+      {% with m = get_flashed_messages() %}{% if m %}data-flash="{{ m[0] }}"{% endif %}{% endwith %}>
+
+  <aside class="rail" id="rail">
+    <a class="brand" href="{{ url_for('index') }}" aria-label="Campus Twin home">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="7" width="16" height="16" rx="3" class="bm-a"/><rect x="10" y="3" width="16" height="16" rx="3" class="bm-b"/></svg>
+      <span class="brand-name">Campus Twin</span>
+    </a>
+    <nav class="rail-nav" aria-label="Dashboard sections">
+      <a href="#twin" class="nav-item" data-view="twin"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Campus twin</span></a>
+      <a href="#forecast" class="nav-item" data-view="forecast"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg><span>Forecast</span></a>
+      <a href="#whatif" class="nav-item" data-view="whatif"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg><span>What-if</span></a>
+      <a href="#planner" class="nav-item" data-view="planner"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Day planner</span></a>
+      <a href="#reports" class="nav-item" data-view="reports"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Crowd reports</span></a>
+      <a href="#alerts" class="nav-item" data-view="alerts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span>Smart alerts</span></a>
+      <a href="#model" class="nav-item" data-view="model"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg><span>Model lab</span></a>
+      {% if user.role == 'admin' %}
+      <a href="#admin" class="nav-item" data-view="admin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Admin</span></a>
+      {% endif %}
+    </nav>
+    <div class="rail-user">
+      <div class="who"><strong>{{ user.name }}</strong><span>{{ user.department }} &middot; Year {{ user.year }}{% if user.role == 'admin' %} &middot; Admin{% endif %}</span></div>
+      <form method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-ghost btn-sm btn-block" type="submit">Log out</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="shell">
+    <header class="topbar">
+      <button class="btn btn-icon nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <h1 id="page-title">Campus twin</h1>
+      <div class="top-chips">
+        <span class="chip" id="chip-day">--</span>
+        <span class="chip" id="chip-weather">--</span>
+        <span class="chip chip-pulse" id="chip-pulse">Campus pulse --</span>
+      </div>
+      <div class="bell-wrap">
+        <button id="bell" class="btn btn-icon" aria-label="Notifications" aria-haspopup="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="bell-count" id="bell-count" hidden>0</span></button>
+        <div class="bell-pop" id="bell-pop" hidden></div>
+      </div>
+    </header>
+
+    <main class="views" id="main">
+
+      <!-- ============ CAMPUS TWIN ============ -->
+      <section class="view" id="view-twin" data-view="twin" aria-labelledby="page-title">
+        <div class="twin-grid">
+          <div class="twin-main">
+            <div class="panel map-panel">
+              <div class="panel-head">
+                <div><h2 id="twin-title">Campus right now</h2><p class="sub" id="twin-sub">&nbsp;</p></div>
+                <div class="legend" id="twin-legend"></div>
+              </div>
+              <div id="twin-map" class="map-host"></div>
+              <div class="scrubber">
+                <button class="btn btn-icon" id="tw-play" aria-label="Play the day"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
+                <div class="scrub-track">
+                  <input type="range" id="tw-hour" min="0" max="23" step="1" value="12" aria-label="Hour of the day">
+                  <div class="scrub-ticks" id="tw-ticks" aria-hidden="true"></div>
+                </div>
+                <output id="tw-clock" class="scrub-clock" for="tw-hour">12:00</output>
+                <button class="btn btn-ghost btn-sm" id="tw-now">Now</button>
+                <select id="tw-day" aria-label="Day"></select>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Campus pulse across the day</h3><p class="sub">Average load of the places that are open. Click the chart to jump to an hour.</p></div></div>
+              <div id="pulse-chart" class="chart"></div>
+            </div>
+          </div>
+          <aside class="twin-side">
+            <div class="panel">
+              <div class="panel-head"><h3 id="side-title">Right now</h3><span class="sub" id="side-hint">Star a place to pin it</span></div>
+              <ul id="fac-list" class="fac-list"></ul>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Best time to go</h3><p class="sub" id="board-sub">Quietest hour of the day.</p></div></div>
+              <div id="go-board" class="go-board"></div>
+            </div>
+            <div class="panel" id="detail-panel" hidden></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ FORECAST ============ -->
+      <section class="view" id="view-forecast" data-view="forecast" hidden>
+        <div class="toolbar"><div class="pills" id="fc-facs" role="tablist" aria-label="Facility"></div></div>
+        <div class="daystrip" id="fc-days" role="tablist" aria-label="Day"></div>
+        <div class="fc-grid">
+          <div class="panel">
+            <div class="panel-head"><div><h2 id="fc-title">Forecast</h2><p class="sub" id="fc-sub">&nbsp;</p></div><span class="sub">Line: prediction. Band: 80% confidence.</span></div>
+            <div id="fc-chart" class="chart"></div>
+          </div>
+          <div class="panel"><div class="panel-head"><h3>Summary</h3></div><dl class="kv" id="fc-stats"></dl></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>The next seven days</h3><p class="sub" id="fc-heat-sub">Predicted load per hour. The outlined cell is the quietest slot of the week.</p></div></div>
+          <div id="fc-heat" class="chart"></div>
+          <div class="heat-legend" id="heat-legend"></div>
+        </div>
+      </section>
+
+      <!-- ============ WHAT-IF ============ -->
+      <section class="view" id="view-whatif" data-view="whatif" hidden>
+        <div class="whatif-grid">
+          <div class="panel controls">
+            <div class="panel-head"><h2>Build a scenario</h2><button class="btn btn-ghost btn-sm" id="wi-reset">Reset</button></div>
+            <div class="presets" id="wi-presets"></div>
+            <label class="field"><span>Date</span><select id="wi-date"></select></label>
+            <div class="field"><span>Kind of day</span><div class="seg" id="seg-daytype" role="radiogroup"></div></div>
+            <div class="field"><span>Exam week</span><div class="seg" id="seg-exam" role="radiogroup"></div></div>
+            <div class="field"><span>Weather</span><div class="seg" id="seg-rain" role="radiogroup"></div></div>
+            <div class="field">
+              <span>Peak temperature <output id="wi-temp-out">forecast</output></span>
+              <input type="range" id="wi-temp" min="20" max="44" step="1" value="32" aria-label="Peak temperature">
+              <label class="check"><input type="checkbox" id="wi-temp-on"> Override the forecast temperature</label>
+            </div>
+            <div class="field">
+              <span>Campus event</span>
+              <div class="row-3">
+                <select id="wi-ev-fac" aria-label="Event facility"></select>
+                <select id="wi-ev-start" aria-label="Event start"></select>
+                <select id="wi-ev-end" aria-label="Event end"></select>
+              </div>
+              <label class="check"><input type="checkbox" id="wi-ev-on"> Hold an event there</label>
+            </div>
+          </div>
+          <div class="wi-results">
+            <div class="panel">
+              <div class="panel-head">
+                <div><h2 id="wi-headline">Baseline versus scenario</h2><p class="sub" id="wi-sub">&nbsp;</p></div>
+                <div class="legend-mini"><i class="sw-base"></i>Normal day <i class="sw-scn"></i>Scenario</div>
+              </div>
+              <div class="hour-pick"><label for="wi-hour">Hour</label><input type="range" id="wi-hour" min="0" max="23" value="18"><output id="wi-hour-out">18:00</output></div>
+              <div id="wi-bars" class="pairs"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h3>Whole-day curve</h3><div class="pills pills-sm" id="wi-facs"></div></div>
+              <div id="wi-chart" class="chart"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PLANNER ============ -->
+      <section class="view" id="view-planner" data-view="planner" hidden>
+        <div class="planner-grid">
+          <div class="panel">
+            <div class="panel-head"><div><h2>Your day</h2><p class="sub">List up to five things to do. We find the calmest order and timing.</p></div></div>
+            <div class="row-3">
+              <label class="field"><span>Date</span><select id="pl-date"></select></label>
+              <label class="field"><span>Free from</span><input type="time" id="pl-start" value="08:00"></label>
+              <label class="field"><span>Free until</span><input type="time" id="pl-end" value="21:00"></label>
+            </div>
+            <div id="pl-acts" class="acts"></div>
+            <div class="row-actions">
+              <button class="btn btn-ghost btn-sm" id="pl-add" type="button">Add activity</button>
+              <label class="inline-field">Walking time between places
+                <select id="pl-buffer"><option value="0">None</option><option value="15" selected>15 min</option><option value="30">30 min</option></select>
+              </label>
+            </div>
+            <button class="btn btn-solid btn-block btn-lg" id="pl-run" type="button">Find the least-crowded plan</button>
+            <p class="form-msg" id="pl-msg" role="status"></p>
+          </div>
+          <div class="panel" id="pl-result">
+            <div class="empty"><h3>Your plan will appear here</h3><p>Add what you need to do and how long each takes. We compare every order and start time against the forecast.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ REPORTS ============ -->
+      <section class="view" id="view-reports" data-view="reports" hidden>
+        <div class="reports-grid">
+          <div class="panel">
+            <div class="panel-head"><div><h2>How busy does it feel?</h2><p class="sub">Your report helps everyone. Recent reports blend into the live estimate.</p></div></div>
+            <div class="field"><span>Where are you?</span><div class="pills" id="rp-facs" role="radiogroup" aria-label="Facility"></div></div>
+            <div class="field"><span>It feels</span><div class="level-btns" id="rp-levels" role="radiogroup" aria-label="Crowd level"></div></div>
+            <label class="field"><span>Note (optional)</span><input type="text" id="rp-note" maxlength="140" placeholder="e.g. Counter 2 has a long queue"></label>
+            <button class="btn btn-solid btn-lg" id="rp-send" type="button">Send report</button>
+            <p class="form-msg" id="rp-msg" role="status"></p>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Model versus students, right now</h3><p class="sub">Students' reports from the last hour, and the blended live figure.</p></div></div>
+            <div class="table-wrap"><table class="tbl" id="rp-table"></table></div>
+          </div>
+          <div class="panel span-2">
+            <div class="panel-head"><h3>Recent reports</h3></div>
+            <ul class="feed" id="rp-feed"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ALERTS ============ -->
+      <section class="view" id="view-alerts" data-view="alerts" hidden>
+        <div class="alerts-grid">
+          <div class="panel">
+            <div class="panel-head"><div><h2>New alert</h2><p class="sub">Alerts look at the live estimate and the forecast, so you hear about a quiet spell before it starts.</p></div></div>
+            <label class="field"><span>Place</span><select id="al-fac"></select></label>
+            <div class="field"><span>Tell me when it</span><div class="seg" id="al-cond" role="radiogroup"></div></div>
+            <div class="field"><span>Threshold <output id="al-thr-out">40%</output></span><input type="range" id="al-thr" min="10" max="95" step="5" value="40" aria-label="Threshold"></div>
+            <label class="field"><span>Look ahead</span>
+              <select id="al-look"><option value="0">Right now only</option><option value="1">Next hour</option><option value="2">Next 2 hours</option><option value="3" selected>Next 3 hours</option><option value="6">Next 6 hours</option></select>
+            </label>
+            <button class="btn btn-solid btn-lg" id="al-add" type="button">Create alert</button>
+            <p class="form-msg" id="al-msg" role="status"></p>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h2>Your alerts</h2><p class="sub" id="al-sub">&nbsp;</p></div></div>
+            <ul class="rules" id="al-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MODEL LAB ============ -->
+      <section class="view" id="view-model" data-view="model" hidden>
+        <div class="facts" id="ml-facts"></div>
+        <div class="panel">
+          <div class="panel-head">
+            <div><h2>Three models, one winner per place</h2><p class="sub">Mean absolute error (MAE) is the average miss in percentage points, measured on the last four weeks the model never saw.</p></div>
+            <button class="btn btn-solid btn-sm" id="ml-retrain" hidden>Retrain models</button>
+          </div>
+          <div class="table-wrap"><table class="tbl" id="ml-table"></table></div>
+        </div>
+        <div class="ml-grid">
+          <div class="panel">
+            <div class="panel-head"><h3>What drives the prediction</h3></div>
+            <div class="pills pills-sm" id="ml-facs" role="tablist" aria-label="Facility"></div>
+            <div id="ml-imp" class="imp"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Predicted versus actual</h3><p class="sub" id="ml-chart-sub">Held-out hours.</p></div></div>
+            <div id="ml-chart" class="chart"></div>
+            <h4 class="mini-h">Training history</h4>
+            <ul class="runs" id="ml-runs"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ADMIN ============ -->
+      {% if user.role == 'admin' %}
+      <section class="view" id="view-admin" data-view="admin" hidden>
+        <div class="facts" id="ad-stats"></div>
+        <div class="admin-grid">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Risk radar</h3><p class="sub">Places forecast to be crowded in the next eight hours.</p></div></div>
+            <ul class="risks" id="ad-risks"></ul>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Staffing suggestions</h3><p class="sub">Based on forecast headcount for the next six hours.</p></div></div>
+            <div class="table-wrap"><table class="tbl" id="ad-staff"></table></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Campus events</h3><p class="sub">Events are fed to the model as a feature, so forecasts change immediately.</p></div></div>
+            <div class="ev-form">
+              <input type="text" id="ev-title" placeholder="Event title" maxlength="80" aria-label="Event title">
+              <select id="ev-fac" aria-label="Facility"></select>
+              <input type="date" id="ev-date" aria-label="Date">
+              <select id="ev-start" aria-label="Start hour"></select>
+              <select id="ev-end" aria-label="End hour"></select>
+              <button class="btn btn-solid btn-sm" id="ev-add" type="button">Add event</button>
+            </div>
+            <p class="form-msg" id="ev-msg" role="status"></p>
+            <ul class="events" id="ad-events"></ul>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Recent activity</h3></div>
+            <ul class="log" id="ad-log"></ul>
+          </div>
+          <div class="panel span-2">
+            <div class="panel-head"><h3>Newest users</h3></div>
+            <div class="table-wrap"><table class="tbl" id="ad-users"></table></div>
+          </div>
+        </div>
+      </section>
+      {% endif %}
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/twin.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/views.js') }}"></script>
+</body>
+</html>

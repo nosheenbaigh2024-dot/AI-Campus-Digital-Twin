@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create account - Campus Twin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth">
+  <aside class="auth-visual">
+    <a class="brand" href="{{ url_for('index') }}" aria-label="Campus Twin home">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="7" width="16" height="16" rx="3" class="bm-a"/><rect x="10" y="3" width="16" height="16" rx="3" class="bm-b"/></svg>
+      <span class="brand-name">Campus Twin</span>
+    </a>
+    <div class="auth-map"><div id="auth-map" class="map-host"></div></div>
+    <p class="auth-caption" id="auth-caption">Reading the campus right now...</p>
+  </aside>
+
+  <main class="auth-panel">
+    <div class="auth-box">
+      <h1>Create your account</h1>
+      <p class="sub">It takes a minute. Your department and year help us show relevant crowd reports.</p>
+
+      <form method="post" action="{{ url_for('register') }}" id="register-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label class="field {{ 'has-error' if errors.name }}">
+          <span>Full name</span>
+          <input type="text" name="name" id="name" value="{{ form.name }}" autocomplete="name" required placeholder="Aarav Menon" maxlength="60">
+          <small class="err" data-for="name">{{ errors.name or '' }}</small>
+        </label>
+
+        <label class="field {{ 'has-error' if errors.email }}">
+          <span>College email</span>
+          <input type="email" name="email" id="email" value="{{ form.email }}" autocomplete="email" required placeholder="you@college.edu" maxlength="120">
+          <small class="err" data-for="email">{{ errors.email or '' }}</small>
+        </label>
+
+        <div class="row-2">
+          <label class="field {{ 'has-error' if errors.department }}">
+            <span>Department</span>
+            <select name="department" id="department">
+              {% for d in departments %}<option value="{{ d }}" {{ 'selected' if form.department == d }}>{{ d }}</option>{% endfor %}
+            </select>
+            <small class="err" data-for="department">{{ errors.department or '' }}</small>
+          </label>
+          <label class="field {{ 'has-error' if errors.year }}">
+            <span>Year</span>
+            <select name="year" id="year">
+              {% for y in ['1','2','3','4'] %}<option value="{{ y }}" {{ 'selected' if form.year == y }}>Year {{ y }}</option>{% endfor %}
+            </select>
+            <small class="err" data-for="year">{{ errors.year or '' }}</small>
+          </label>
+        </div>
+
+        <label class="field {{ 'has-error' if errors.password }}">
+          <span>Password</span>
+          <span class="pw-wrap">
+            <input type="password" name="password" id="password" autocomplete="new-password" required placeholder="At least 8 characters">
+            <button type="button" class="pw-toggle" data-target="password" aria-label="Show password">Show</button>
+          </span>
+          <span class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <small class="hint" id="pw-hint">Use letters and numbers. A short phrase works well.</small>
+          <small class="err" data-for="password">{{ errors.password or '' }}</small>
+        </label>
+
+        <label class="field {{ 'has-error' if errors.confirm }}">
+          <span>Confirm password</span>
+          <input type="password" name="confirm" id="confirm" autocomplete="new-password" required placeholder="Type it again">
+          <small class="err" data-for="confirm">{{ errors.confirm or '' }}</small>
+        </label>
+
+        <button class="btn btn-solid btn-block btn-lg" type="submit">Create account</button>
+      </form>
+
+      <p class="alt">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/twin.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campus Twin - know how busy campus is before you go</title>
+  <meta name="description" content="A live digital twin of campus facilities that predicts crowd levels and recommends the best time to visit.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="site">
+  <header class="site-head">
+    <a class="brand" href="{{ url_for('index') }}" aria-label="Campus Twin home">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="7" width="16" height="16" rx="3" class="bm-a"/><rect x="10" y="3" width="16" height="16" rx="3" class="bm-b"/></svg>
+      <span class="brand-name">Campus Twin</span>
+    </a>
+    <nav class="site-nav" aria-label="Sections">
+      <a href="#live">Live map</a><a href="#today">Today</a><a href="#how">How it works</a><a href="#features">Features</a>
+    </nav>
+    <div class="site-actions">
+      {% if user %}
+        <a class="btn btn-solid" href="{{ url_for('dashboard') }}">Open dashboard</a>
+      {% else %}
+        <a class="btn btn-ghost" href="{{ url_for('login') }}">Log in</a>
+        <a class="btn btn-solid" href="{{ url_for('register') }}">Create account</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="live">
+      <div class="hero-copy">
+        <h1>Know how busy campus is before you walk there</h1>
+        <p class="lede">Campus Twin is a live model of the library, labs, mess, food court, gym, sports ground and parking. It learns from a year of hourly history and tells you the quietest time to go.</p>
+        <div class="hero-cta">
+          {% if user %}
+            <a class="btn btn-solid btn-lg" href="{{ url_for('dashboard') }}">Open your dashboard</a>
+          {% else %}
+            <a class="btn btn-solid btn-lg" href="{{ url_for('register') }}">Create an account</a>
+            <a class="btn btn-ghost btn-lg" href="{{ url_for('login') }}">I already have one</a>
+          {% endif %}
+        </div>
+        <p class="hero-facts">7 places modelled. 24 hourly forecasts for each. 3 algorithms compared per place.</p>
+      </div>
+      <figure class="hero-map">
+        <div class="hero-map-top">
+          <span class="live-chip"><i class="live-dot"></i><span id="hero-clock">Loading</span></span>
+          <span class="pulse-chip" id="hero-pulse"></span>
+        </div>
+        <div id="hero-map" class="map-host" aria-live="polite"></div>
+        <figcaption><div class="legend" id="hero-legend"></div></figcaption>
+      </figure>
+    </section>
+
+    <section class="band" id="today">
+      <div class="band-head">
+        <h2>Today across campus</h2>
+        <p>The estimate for right now, and the shape of the whole day. The dot on each line marks this hour.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="board" id="today-board">
+          <thead><tr><th>Place</th><th>Now</th><th>Quietest hour</th><th>Today, hour by hour</th></tr></thead>
+          <tbody><tr><td colspan="4" class="muted">Loading the latest estimates...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="band band-tint" id="how">
+      <div class="band-head"><h2>How the twin works</h2></div>
+      <ol class="steps">
+        <li>
+          <h3>It learns the rhythm of campus</h3>
+          <p>A year of hourly headcounts for every facility, joined with the academic calendar, weather and campus events. Exam weeks, rainy evenings and holidays all leave a pattern.</p>
+        </li>
+        <li>
+          <h3>Three models compete</h3>
+          <p>Ridge regression, Random Forest and Gradient Boosting are trained for each facility. The one with the lowest error on the most recent four weeks is kept.</p>
+        </li>
+        <li>
+          <h3>It gives advice, not just numbers</h3>
+          <p>The best time to go, what-if scenarios, a planner that orders your day around the crowds, and alerts for when your favourite place quietens down.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="band" id="features">
+      <div class="band-head"><h2>What you can do with it</h2></div>
+      <dl class="features">
+        <div><dt>Scrub through the day</dt><dd>Drag a slider and watch every building change colour hour by hour, today or any day this week.</dd></div>
+        <div><dt>Ask "what if?"</dt><dd>Switch on exam week, rain, a heatwave or a fest and see which places overflow.</dd></div>
+        <div><dt>Plan your day</dt><dd>Tell it what you need to do and how long each takes. It finds the least-crowded order and timing.</dd></div>
+        <div><dt>Report how it feels</dt><dd>One tap tells everyone the mess is packed. Fresh reports blend into the live estimate.</dd></div>
+        <div><dt>Get smart alerts</dt><dd>"Tell me when the gym drops below 30% in the next three hours." Predictive, not just live.</dd></div>
+        <div><dt>Inspect the model</dt><dd>See error rates, feature importance and predicted-versus-actual charts for every facility.</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <span>Campus Twin - Web Technologies project</span>
+    <span>Flask, SQLite, scikit-learn and plain JavaScript. Demo data is simulated.</span>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/twin.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+</body>
+</html>
